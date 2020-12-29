@@ -1,14 +1,14 @@
-import { NestFactory } from '@nestjs/core';
-import AppModule from './app.module';
-import { join } from 'path';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { HttpExceptionFilter, Utils } from '@enoviah/nest-core';
-import environment from './environment/env';
-import { EnvStatus } from '@enoviah/nest-core/dist/models/environment.model';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { EnvStatus } from '@enoviah/nest-core/dist/models/environment.model';
+import { NestFactory } from '@nestjs/core';
+import { join } from 'path';
 import * as cors from 'cors';
 import * as bodyParser from 'body-parser';
-import helmet = require('helmet');
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { HttpExceptionFilter, Utils } from '@enoviah/nest-core';
+import * as helmet from 'helmet';
+import AppModule from './app.module';
+import environment from './environment/env';
 
 function initSwagger(app) {
   const options = new DocumentBuilder()
