@@ -1,6 +1,6 @@
 {
   "name": "@enoviah/s-js-api",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "",
   "author": "",
   "private": true,
@@ -183,7 +183,7 @@
         "production": {
           "network": "traefik",
           "labels": {
-            "traefik.port": "8080",
+            "traefik.port": "80",
             "traefik.frontend.rule": "Host:js-api.enoviah.fr",
             "traefik.frontend.entryPoints": "http,https",
             "traefik.backend": "js-api-enoviah-fr"
