@@ -7,5 +7,7 @@ import AppService from './app.service';
   controllers: [AppController],
   providers: [AppService],
 })
-export default class {
+class AppModule {
 }
+
+export default AppModule;

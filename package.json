@@ -1,6 +1,6 @@
 {
   "name": "@enoviah/s-js-api",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "",
   "author": "",
   "private": true,
@@ -28,16 +28,23 @@
     "@nestjs/common": "^7.5.1",
     "@nestjs/core": "^7.5.1",
     "@nestjs/platform-express": "^7.5.1",
+    "@nestjs/swagger": "^4.7.9",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "helmet": "^4.3.1",
+    "jsonschema": "^1.4.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^6.6.3",
-    "jsonschema": "^1.4.0"
+    "swagger-ui-express": "^4.1.6"
   },
   "devDependencies": {
     "@nestjs/cli": "^7.5.1",
     "@nestjs/schematics": "^7.1.3",
     "@nestjs/testing": "^7.5.1",
+    "@types/cors": "^2.8.9",
     "@types/express": "^4.17.8",
+    "@types/helmet": "^4.0.0",
     "@types/jest": "^26.0.15",
     "@types/node": "^14.14.6",
     "@types/supertest": "^2.0.10",
@@ -51,6 +58,7 @@
     "eslint-plugin-prettier": "^3.1.4",
     "eslint-plugin-react": "^7.21.5",
     "eslint-plugin-react-hooks": "^4.2.0",
+    "husky": "^4.2.3",
     "jest": "^26.6.3",
     "prettier": "^2.1.2",
     "supertest": "^6.0.0",
@@ -58,8 +66,7 @@
     "ts-loader": "^8.0.8",
     "ts-node": "^9.0.0",
     "tsconfig-paths": "^3.9.0",
-    "typescript": "^4.0.5",
-    "husky": "^4.2.3"
+    "typescript": "^4.0.5"
   },
   "jest": {
     "moduleFileExtensions": [
@@ -188,8 +195,7 @@
             "traefik.frontend.entryPoints": "http,https",
             "traefik.backend": "js-api-enoviah-fr"
           },
-          "volumes": [
-          ],
+          "volumes": [],
           "env": [
             "CLIENT_ID",
             "CLIENT_SECRET",
