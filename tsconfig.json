@@ -8,7 +8,7 @@
     "allowSyntheticDefaultImports": true,
     "target": "es2017",
     "sourceMap": true,
-    "outDir": "./dist",
+    "outDir": ".enoviah/service/@enoviah/s-js-api/",
     "baseUrl": "./",
     "incremental": true
   }

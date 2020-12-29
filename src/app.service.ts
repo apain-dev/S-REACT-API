@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export default class {
-  readonly hello = 'hello world';
+class AppService {
+  readonly message = 'hello';
 
   getHello(): string {
-    return this.hello;
+    return this.message;
   }
 }
+
+export default AppService;

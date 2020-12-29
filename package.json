@@ -1,6 +1,6 @@
 {
-  "name": "nest",
-  "version": "0.0.1",
+  "name": "@enoviah/s-js-api",
+  "version": "0.0.2",
   "description": "",
   "author": "",
   "private": true,
@@ -55,7 +55,8 @@
     "ts-loader": "^8.0.8",
     "ts-node": "^9.0.0",
     "tsconfig-paths": "^3.9.0",
-    "typescript": "^4.0.5"
+    "typescript": "^4.0.5",
+    "husky": "^4.2.3"
   },
   "jest": {
     "moduleFileExtensions": [
@@ -73,5 +74,184 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "enoviah": {
+    "configuration": {
+      "lifecycle": {
+        "macos": {
+          "onInit": {
+            "commands": []
+          },
+          "onArtifact": {
+            "commands": []
+          },
+          "onCodeQuality": {
+            "commands": []
+          }
+        },
+        "linux": {
+          "onInit": {
+            "commands": []
+          },
+          "onArtifact": {
+            "commands": []
+          },
+          "onCodeQuality": {
+            "commands": []
+          }
+        }
+      },
+      "rootPath": ".",
+      "type": "service",
+      "name": "s-js-api",
+      "group": "enoviah"
+    },
+    "binary": {
+      "artifact": {
+        "linux": {
+          "coverage": false,
+          "e2e": false,
+          "lint": false,
+          "mandatory": [],
+          "test": false
+        },
+        "macos": {
+          "coverage": false,
+          "e2e": false,
+          "lint": false,
+          "mandatory": [],
+          "test": false
+        }
+      }
+    },
+    "library": {
+      "artifact": {
+        "linux": {
+          "coverage": false,
+          "e2e": false,
+          "lint": false,
+          "mandatory": [],
+          "test": false
+        },
+        "macos": {
+          "coverage": false,
+          "e2e": false,
+          "lint": false,
+          "mandatory": [],
+          "test": false
+        }
+      }
+    },
+    "service": {
+      "artifact": {
+        "linux": {
+          "coverage": false,
+          "e2e": false,
+          "lint": true,
+          "mandatory": [
+            {
+              "path": "package.json",
+              "name": "package.json"
+            },
+            {
+              "path": "Dockerfile",
+              "name": "Dockerfile"
+            },
+            {
+              "path": "node_modules",
+              "name": "node_modules"
+            },
+            {
+              "path": "docker",
+              "name": "docker"
+            }
+          ],
+          "test": false
+        },
+        "macos": {
+          "coverage": false,
+          "e2e": false,
+          "lint": false,
+          "mandatory": [],
+          "test": false
+        }
+      },
+      "deployment": {
+        "production": {
+          "network": "traefik",
+          "labels": {
+            "traefik.port": "8080",
+            "traefik.frontend.rule": "Host:js-api.enoviah.fr",
+            "traefik.frontend.entryPoints": "http,https",
+            "traefik.backend": "js-api-enoviah-fr"
+          },
+          "volumes": [
+          ],
+          "env": [
+            "CLIENT_ID",
+            "CLIENT_SECRET",
+            "MONGO_DATABASE",
+            "OAUTH2_API",
+            "PORT",
+            "MONGO_ADDRESS",
+            "MONGO_HOST",
+            "MONGO_PASSWORD",
+            "MONGO_PORT",
+            "MONGO_USER",
+            "NODE_ENV"
+          ]
+        },
+        "staging": {
+          "network": "traefik",
+          "labels": {
+            "traefik.port": "80",
+            "traefik.frontend.rule": "Host:js-js.enoviah.fr",
+            "traefik.frontend.entryPoints": "http,https",
+            "traefik.backend": "api-jeprecommande-fr"
+          },
+          "volumes": [
+            {
+              "pathInContainer": "/usr/src/api/public",
+              "name": "s-cd-api",
+              "driver": "local",
+              "driverOpts": {
+                "type": "nfs4",
+                "o": "addr=37.187.0.142,rw",
+                "device": ":/srv/nfs/portainer_docker_staging/s-cd-api"
+              },
+              "nfsPath": "/srv/nfs/portainer_docker_staging/s-cd-api"
+            }
+          ],
+          "env": [
+            "CLIENT_ID",
+            "CLIENT_SECRET",
+            "MONGO_DATABASE",
+            "OAUTH2_API",
+            "PORT",
+            "MONGO_ADDRESS",
+            "MONGO_HOST",
+            "MONGO_PASSWORD",
+            "MONGO_PORT",
+            "MONGO_USER",
+            "NODE_ENV",
+            "URL",
+            "UPLOAD_DIR",
+            "UPLOAD_DIR_FOR_ITEM",
+            "UPLOAD_LIMIT",
+            "GMAPS_API_KEY",
+            "APP_URL",
+            "STRIPE_WEBHOOKS_KEY",
+            "STRIPE_PRIVATE_KEY",
+            "POSTMARK_API_KEY"
+          ]
+        }
+      }
+    }
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint",
+      "post-checkout": "eno-ci pc"
+    }
   }
 }
