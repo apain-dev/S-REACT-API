@@ -6,6 +6,11 @@ const UserSchema = new Schema({
   lastName: { type: String, required: true },
   email: { type: String, required: true },
   authId: { type: ObjectId, required: true },
+  spotify: {
+    id: { type: String },
+    accessToken: { type: String },
+    refreshToken: { type: String },
+  },
 }, { timestamps: true });
 
 export default UserSchema;

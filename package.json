@@ -24,7 +24,7 @@
     "e2e": "echo [EnoviahCI] E2E Command not configured."
   },
   "dependencies": {
-    "@enoviah/nest-core": "latest",
+    "@enoviah/nest-core": "0.7.1",
     "@nestjs/common": "^7.5.1",
     "@nestjs/core": "^7.5.1",
     "@nestjs/platform-express": "^7.5.1",
@@ -35,9 +35,10 @@
     "jsonschema": "^1.4.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
-    "rxjs": "^6.6.3",
+    "rxjs": "6.6.3",
     "swagger-ui-express": "^4.1.6",
-    "mongoose": "5.9.17"
+    "mongoose": "5.11.8",
+    "axios": "0.21.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^7.5.1",
@@ -49,7 +50,6 @@
     "@types/jest": "^26.0.15",
     "@types/node": "^14.14.6",
     "@types/supertest": "^2.0.10",
-    "@types/mongoose": "5.7.21",
     "@typescript-eslint/eslint-plugin": "^4.6.1",
     "@typescript-eslint/parser": "^4.6.1",
     "eslint": "^7.2.0",

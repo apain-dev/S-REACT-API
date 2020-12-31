@@ -1,11 +1,15 @@
 import {
+  AuthenticatedRequest,
+  BearerGuard,
+  TokenInfoResponse,
+} from '@enoviah/nest-core';
+import {
   Controller,
   Get,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { AuthenticatedRequest, BearerGuard, TokenInfoResponse } from '@enoviah/nest-core';
 import UsersService from '../users/users.service';
 
 @Controller('account')

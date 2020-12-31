@@ -4,4 +4,7 @@ export interface Environment {
   OAUTH2_API: string;
   CLIENT_ID: string;
   CLIENT_SECRET: string;
+  SPOTIFY_CLIENT_SECRET: string;
+  SPOTIFY_CLIENT_ID: string;
+  SPOTIFY_REDIRECT_URI: string;
 }

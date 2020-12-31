@@ -7,6 +7,7 @@ import * as bodyParser from 'body-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { HttpExceptionFilter, Utils } from '@enoviah/nest-core';
 import * as helmet from 'helmet';
+import { Logger } from '@nestjs/common';
 import AppModule from './app.module';
 import environment from './environment/env';
 
@@ -29,6 +30,7 @@ async function bootstrap() {
   app.use(bodyParser.json());
   app.useGlobalFilters(new HttpExceptionFilter());
   initSwagger(app);
+  Logger.debug(`API listening on ${environment.environment.PORT}`);
   await app.listen(+environment.environment.PORT);
 }
 

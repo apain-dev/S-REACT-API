@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-class User {
-  @ApiProperty({ type: String })
+class CreateUserRequest {
+  @ApiProperty()
   firstName: string;
 
   @ApiProperty()
@@ -11,14 +11,10 @@ class User {
   email: string;
 
   @ApiProperty()
-  authId: string;
+  password: string;
 
   @ApiProperty()
-  spotify?: {
-    id: string;
-    accessToken: string;
-    refreshToken: string;
-  };
+  confirmPassword: string;
 }
 
-export default User;
+export default CreateUserRequest;
