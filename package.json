@@ -1,6 +1,6 @@
 {
   "name": "@enoviah/s-js-api",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "",
   "author": "",
   "private": true,
@@ -208,7 +208,10 @@
             "MONGO_PASSWORD",
             "MONGO_PORT",
             "MONGO_USER",
-            "NODE_ENV"
+            "NODE_ENV",
+            "SPOTIFY_CLIENT_SECRET",
+            "SPOTIFY_CLIENT_ID",
+            "SPOTIFY_REDIRECT_URI"
           ]
         },
         "staging": {
