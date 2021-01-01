@@ -1,4 +1,7 @@
-import { BadRequest } from '@enoviah/nest-core';
+import {
+  BadRequest,
+  JsonSchemaService,
+} from '@enoviah/nest-core';
 import {
   HttpService,
   Injectable,
@@ -19,7 +22,9 @@ import {
   mergeMap,
 } from 'rxjs/operators';
 import environment from '../../environment/env';
+import { CreatePlaylistRequestBody } from '../../models/spotify/playlists/createPlaylistRequest.dto';
 import { PlaylistItem } from '../../models/spotify/playlists/getPlaylistsResponse';
+import createPlaylistSchema from '../../models/spotify/playlists/validation';
 import SearchRequestQuery from '../../models/spotify/search/searchRequest.dto';
 import {
   CreateTokenResponse,
@@ -43,7 +48,7 @@ class SpotifyService {
   };
 
   constructor(private readonly httpService: HttpService,
-    private readonly userService: UsersService) {
+    private readonly userService: UsersService, private readonly validationService: JsonSchemaService) {
   }
 
   static getHeadersFromUser(user: UserDocument) {
@@ -109,6 +114,32 @@ class SpotifyService {
         };
         return this.httpService.request<{ items: [PlaylistItem] }>(config).pipe(
           map((response) => ({ results: response.data.items })),
+        );
+      })).pipe(catchError((err) => this.handleUnauthorized<AxiosError>(err, userId)));
+  }
+
+  createPlaylist(body: CreatePlaylistRequestBody, userId: string) {
+    const validation = this.validationService.validate(body, createPlaylistSchema);
+    if (validation?.errors?.length) {
+      throw new BadRequest({
+        message: 'Validation failed',
+        code: 'EVALIDATIONFAIL',
+        metadata: validation.errors,
+      });
+    }
+    return from(this.userService.findOne({ _id: userId }))
+      .pipe(mergeMap((userDocument) => {
+        const config: AxiosRequestConfig = {
+          method: 'POST',
+          url: `${this.spotify.api.root}/users/${userDocument.spotify.id}/playlists`,
+          headers: SpotifyService.getHeadersFromUser(userDocument),
+          data: {
+            name: body.name,
+            description: body.description,
+          },
+        };
+        return this.httpService.request<PlaylistItem>(config).pipe(
+          map((response) => (response.data)),
         );
       })).pipe(catchError((err) => this.handleUnauthorized<AxiosError>(err, userId)));
   }
