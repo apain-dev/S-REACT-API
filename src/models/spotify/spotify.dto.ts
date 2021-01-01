@@ -1,3 +1,5 @@
+import { ApiProperty } from '@nestjs/swagger';
+
 export interface CreateTokenResponse {
   access_token: string;
   token_type: string;
@@ -19,45 +21,30 @@ export interface GetAccountResponse {
   uri: string;
 }
 
-export interface SpotifyImage {
-
+export class SpotifyImage {
+  @ApiProperty()
   height: number;
+
+  @ApiProperty()
   url: string;
+
+  @ApiProperty()
   width: number;
 }
 
-export interface PlaylistItem {
-  collaborative: boolean,
-  description: string,
-  external_urls: {
-    spotify: string,
-  },
-  href: string;
-  id: string;
-  images: SpotifyImage[];
-  name: string;
-  owner: {
-    display_name: string;
-    external_urls: {
-      spotify: string;
-    },
-    href: string;
-    id: string;
-    type: string;
-    uri: string;
-  };
-  primary_color: string;
-  public: boolean;
-  snapshot_id: string;
-  tracks: {
-    href: string;
-    total: number;
-  },
-  type: string;
-  uri: string;
-}
+export class SpotifyUser {
+  @ApiProperty()
+  display_name: string;
 
-export interface GetPlaylistsResponse {
+  @ApiProperty()
   href: string;
-  items: PlaylistItem[];
+
+  @ApiProperty()
+  id: string;
+
+  @ApiProperty()
+  type: string;
+
+  @ApiProperty()
+  uri: string;
 }

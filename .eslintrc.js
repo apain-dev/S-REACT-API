@@ -8,7 +8,7 @@ module.exports = {
   extends: [
     'plugin:@typescript-eslint/recommended',
     'prettier/@typescript-eslint',
-    'eslint-config-airbnb-typescript'
+    'eslint-config-airbnb-typescript',
   ],
   root: true,
   env: {
@@ -20,5 +20,6 @@ module.exports = {
     '@typescript-eslint/interface-name-prefix': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
+    'max-classes-per-file': 'off',
   },
 };

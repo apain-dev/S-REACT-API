@@ -19,10 +19,11 @@ import {
   mergeMap,
 } from 'rxjs/operators';
 import environment from '../../environment/env';
+import { PlaylistItem } from '../../models/spotify/playlists/getPlaylistsResponse';
+import SearchRequestQuery from '../../models/spotify/search/searchRequest.dto';
 import {
   CreateTokenResponse,
   GetAccountResponse,
-  GetPlaylistsResponse,
 } from '../../models/spotify/spotify.dto';
 import { UserDocument } from '../../models/user/user.document';
 import UsersService from '../users/users.service';
@@ -37,6 +38,7 @@ class SpotifyService {
       root: 'https://api.spotify.com/v1',
       account: 'me',
       playlists: 'me/playlists',
+      search: 'search',
     },
   };
 
@@ -52,6 +54,27 @@ class SpotifyService {
       });
     }
     return { Authorization: `Bearer ${user.spotify.accessToken}` };
+  }
+
+  search(query: SearchRequestQuery, userId: string) {
+    return from(this.userService.findOne({ _id: userId }))
+      .pipe(mergeMap((userDocument) => {
+        const config: AxiosRequestConfig = {
+          method: 'GET',
+          url: `${this.spotify.api.root}/${this.spotify.api.search}`,
+          headers: SpotifyService.getHeadersFromUser(userDocument),
+          params: {
+            q: query.q,
+            type: query.type,
+          },
+        };
+        return this.httpService.request<{ [key: string]: { items: unknown } }>(config).pipe(
+          map((response) => {
+            const key = Object.keys(response.data)[0];
+            return { results: response.data[key].items };
+          }),
+        );
+      })).pipe(catchError((err) => this.handleUnauthorized<AxiosError>(err, userId)));
   }
 
   applyCodeToUser(code: string, userId: string) {
@@ -84,8 +107,8 @@ class SpotifyService {
           url: `${this.spotify.api.root}/${this.spotify.api.playlists}`,
           headers: SpotifyService.getHeadersFromUser(userDocument),
         };
-        return this.httpService.request<GetPlaylistsResponse>(config).pipe(
-          map((response) => response.data),
+        return this.httpService.request<{ items: [PlaylistItem] }>(config).pipe(
+          map((response) => ({ results: response.data.items })),
         );
       })).pipe(catchError((err) => this.handleUnauthorized<AxiosError>(err, userId)));
   }
