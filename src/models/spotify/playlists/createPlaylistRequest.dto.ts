@@ -10,6 +10,4 @@ export class CreatePlaylistRequestBody {
   @ApiPropertyOptional({ description: 'Description of the playlist' })
   description: string;
 }
-
-export class CreatePlaylistResponse {
-}
+export default CreatePlaylistRequestBody;

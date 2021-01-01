@@ -22,9 +22,15 @@ import {
   mergeMap,
 } from 'rxjs/operators';
 import environment from '../../environment/env';
+import {
+  PlayerResponse,
+  ResumePlayerRequest,
+} from '../../models/spotify/player/player.dto';
+import resumePlayerSchema from '../../models/spotify/player/validation';
+import { AddTrackToPlaylistBody } from '../../models/spotify/playlists/addTrackToPlaylistRequest.dto';
 import { CreatePlaylistRequestBody } from '../../models/spotify/playlists/createPlaylistRequest.dto';
 import { PlaylistItem } from '../../models/spotify/playlists/getPlaylistsResponse';
-import createPlaylistSchema from '../../models/spotify/playlists/validation';
+import createPlaylistSchema, { addTrackToPlaylistSchema } from '../../models/spotify/playlists/validation';
 import SearchRequestQuery from '../../models/spotify/search/searchRequest.dto';
 import {
   CreateTokenResponse,
@@ -44,11 +50,13 @@ class SpotifyService {
       account: 'me',
       playlists: 'me/playlists',
       search: 'search',
+      player: 'me/player',
     },
   };
 
   constructor(private readonly httpService: HttpService,
-    private readonly userService: UsersService, private readonly validationService: JsonSchemaService) {
+    private readonly userService: UsersService,
+    private readonly validationService: JsonSchemaService) {
   }
 
   static getHeadersFromUser(user: UserDocument) {
@@ -59,6 +67,60 @@ class SpotifyService {
       });
     }
     return { Authorization: `Bearer ${user.spotify.accessToken}` };
+  }
+
+  getPlayer(userId: string) {
+    return from(this.userService.findOne({ _id: userId }))
+      .pipe(mergeMap((userDocument) => {
+        const config: AxiosRequestConfig = {
+          method: 'GET',
+          url: `${this.spotify.api.root}/${this.spotify.api.player}`,
+          headers: SpotifyService.getHeadersFromUser(userDocument),
+        };
+        return this.httpService.request<{ device: PlayerResponse }>(config).pipe(
+          map((response) => response.data.device),
+        );
+      })).pipe(catchError((err) => this.handleUnauthorized<AxiosError>(err, userId)));
+  }
+
+  pausePlayer(userId: string) {
+    return from(this.userService.findOne({ _id: userId }))
+      .pipe(mergeMap((userDocument) => {
+        const config: AxiosRequestConfig = {
+          method: 'PUT',
+          url: `${this.spotify.api.root}/${this.spotify.api.player}/pause`,
+          headers: SpotifyService.getHeadersFromUser(userDocument),
+        };
+        return this.httpService.request<void>(config).pipe(
+          map((response) => response.data),
+        );
+      })).pipe(catchError((err) => this.handleUnauthorized<AxiosError>(err, userId)));
+  }
+
+  resumePlayer(userId: string, body: ResumePlayerRequest) {
+    const validation = this.validationService.validate(body, resumePlayerSchema);
+    if (validation?.errors?.length) {
+      throw new BadRequest({
+        message: 'Validation failed',
+        code: 'EVALIDATIONFAIL',
+        metadata: validation.errors,
+      });
+    }
+    return from(this.userService.findOne({ _id: userId }))
+      .pipe(mergeMap((userDocument) => {
+        const config: AxiosRequestConfig = {
+          method: 'PUT',
+          url: `${this.spotify.api.root}/${this.spotify.api.player}/play`,
+          headers: SpotifyService.getHeadersFromUser(userDocument),
+          data: {
+            context_uri: body.context_uri,
+            uris: body.uris,
+          },
+        };
+        return this.httpService.request<void>(config).pipe(
+          map((response) => response.data),
+        );
+      })).pipe(catchError((err) => this.handleUnauthorized<AxiosError>(err, userId)));
   }
 
   search(query: SearchRequestQuery, userId: string) {
@@ -136,6 +198,31 @@ class SpotifyService {
           data: {
             name: body.name,
             description: body.description,
+          },
+        };
+        return this.httpService.request<PlaylistItem>(config).pipe(
+          map((response) => (response.data)),
+        );
+      })).pipe(catchError((err) => this.handleUnauthorized<AxiosError>(err, userId)));
+  }
+
+  addTrackToPlaylist(body: AddTrackToPlaylistBody, playlistId: string, userId: string) {
+    const validation = this.validationService.validate(body, addTrackToPlaylistSchema);
+    if (validation?.errors?.length) {
+      throw new BadRequest({
+        message: 'Validation failed',
+        code: 'EVALIDATIONFAIL',
+        metadata: validation.errors,
+      });
+    }
+    return from(this.userService.findOne({ _id: userId }))
+      .pipe(mergeMap((userDocument) => {
+        const config: AxiosRequestConfig = {
+          method: 'POST',
+          url: `${this.spotify.api.root}/playlists/${playlistId}/tracks`,
+          headers: SpotifyService.getHeadersFromUser(userDocument),
+          data: {
+            uris: body.uris,
           },
         };
         return this.httpService.request<PlaylistItem>(config).pipe(
