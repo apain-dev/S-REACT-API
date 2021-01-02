@@ -24,7 +24,7 @@
     "e2e": "echo [EnoviahCI] E2E Command not configured."
   },
   "dependencies": {
-    "@enoviah/nest-core": "0.7.3",
+    "@enoviah/nest-core": "0.8.0",
     "@nestjs/common": "^7.5.1",
     "@nestjs/core": "^7.5.1",
     "@nestjs/platform-express": "^7.5.1",

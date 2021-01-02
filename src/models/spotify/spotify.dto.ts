@@ -96,9 +96,9 @@ export class SpotifyTrack {
 }
 
 export class DefaultPaginationQuery {
-  @ApiPropertyOptional({ description: 'Limit of results. Limit is 50', example: 'limit=35' })
+  @ApiPropertyOptional({ type: String, description: 'Limit of results. Limit is 50', example: 'limit=35' })
   limit: string | number;
 
-  @ApiPropertyOptional({ description: 'Offset of results', example: 'offset=35' })
+  @ApiPropertyOptional({ type: String, description: 'Offset of results', example: 'offset=35' })
   offset: string | number;
 }
