@@ -13,6 +13,7 @@ import SpotifyService from './spotify.service';
   imports: [HttpModule, UsersModule, JsonSchemaModule],
   controllers: [SpotifyController, PlaylistsController, PlayerController],
   providers: [SpotifyService],
+  exports: [SpotifyService],
 })
 class SpotifyModule {
 }

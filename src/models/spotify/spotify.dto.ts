@@ -48,3 +48,22 @@ export class SpotifyUser {
   @ApiProperty()
   uri: string;
 }
+
+export interface SpotifyArtist {
+  id: string,
+  name: string,
+  type: string,
+  uri: string
+}
+
+export interface SpotifyTrack {
+  artists: SpotifyArtist[],
+  duration_ms: number,
+  id: string;
+  is_local: boolean;
+  is_playable: boolean;
+  name: string;
+  track_number: 1;
+  type: string;
+  uri: string;
+}

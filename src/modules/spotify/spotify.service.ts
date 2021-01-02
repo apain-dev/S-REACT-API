@@ -24,6 +24,7 @@ import {
 import environment from '../../environment/env';
 import {
   PlayerResponse,
+  PlayerStatus,
   ResumePlayerRequest,
 } from '../../models/spotify/player/player.dto';
 import resumePlayerSchema from '../../models/spotify/player/validation';
@@ -93,6 +94,20 @@ class SpotifyService {
         };
         return this.httpService.request<void>(config).pipe(
           map((response) => response.data),
+        );
+      })).pipe(catchError((err) => this.handleUnauthorized<AxiosError>(err, userId)));
+  }
+
+  getPlayerStatus(userId: string): Observable<PlayerStatus | AxiosError> {
+    return from(this.userService.findOne({ _id: userId }))
+      .pipe(mergeMap((userDocument) => {
+        const config: AxiosRequestConfig = {
+          method: 'GET',
+          url: `${this.spotify.api.root}/${this.spotify.api.player}/currently-playing`,
+          headers: SpotifyService.getHeadersFromUser(userDocument),
+        };
+        return this.httpService.request<PlayerStatus | string>(config).pipe(
+          map((response) => (typeof response.data === 'string') ? null : response.data),
         );
       })).pipe(catchError((err) => this.handleUnauthorized<AxiosError>(err, userId)));
   }

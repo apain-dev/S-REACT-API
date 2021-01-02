@@ -2,28 +2,29 @@ import {
   ApiProperty,
   ApiPropertyOptional,
 } from '@nestjs/swagger';
+import { SpotifyTrack } from '../spotify.dto';
 
 export class PlayerResponse {
   @ApiProperty()
-  'id': string;
+  id: string;
 
   @ApiProperty()
-  'is_active': boolean;
+  is_active: boolean;
 
   @ApiProperty()
-  'is_private_session': boolean;
+  is_private_session: boolean;
 
   @ApiProperty()
-  'is_restricted': boolean;
+  is_restricted: boolean;
 
   @ApiProperty()
-  'name': string;
+  name: string;
 
   @ApiProperty()
-  'type': string;
+  type: string;
 
   @ApiProperty()
-  'volume_percent': number;
+  volume_percent: number;
 }
 
 export class ResumePlayerRequest {
@@ -32,4 +33,12 @@ export class ResumePlayerRequest {
 
   @ApiPropertyOptional({ description: 'Optional tracks to play. Only for tracks' })
   uris: string[];
+}
+
+export interface PlayerStatus {
+  timestamp: number;
+  progress_ms: number;
+  currently_playing_type: string;
+  is_playing: boolean;
+  item: SpotifyTrack;
 }
