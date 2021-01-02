@@ -3,6 +3,7 @@ import {
   JsonSchemaService,
 } from '@enoviah/nest-core';
 import {
+  HttpException,
   HttpService,
   Injectable,
 } from '@nestjs/common';
@@ -22,6 +23,8 @@ import {
   mergeMap,
 } from 'rxjs/operators';
 import environment from '../../environment/env';
+import { AddTracksToLibraryBody } from '../../models/spotify/library/library.dto';
+import addTrackToLibrarySchema from '../../models/spotify/library/validation';
 import {
   PlayerResponse,
   PlayerStatus,
@@ -35,8 +38,11 @@ import createPlaylistSchema, { addTrackToPlaylistSchema } from '../../models/spo
 import SearchRequestQuery from '../../models/spotify/search/searchRequest.dto';
 import {
   CreateTokenResponse,
+  DefaultPaginationQuery,
   GetAccountResponse,
+  SpotifyTrack,
 } from '../../models/spotify/spotify.dto';
+import defaultPaginationSchema from '../../models/spotify/validation';
 import { UserDocument } from '../../models/user/user.document';
 import UsersService from '../users/users.service';
 
@@ -52,6 +58,7 @@ class SpotifyService {
       playlists: 'me/playlists',
       search: 'search',
       player: 'me/player',
+      tracks: 'me/tracks',
     },
   };
 
@@ -107,20 +114,13 @@ class SpotifyService {
           headers: SpotifyService.getHeadersFromUser(userDocument),
         };
         return this.httpService.request<PlayerStatus | string>(config).pipe(
-          map((response) => (typeof response.data === 'string') ? null : response.data),
+          map((response) => ((typeof response.data === 'string') ? null : response.data)),
         );
       })).pipe(catchError((err) => this.handleUnauthorized<AxiosError>(err, userId)));
   }
 
   resumePlayer(userId: string, body: ResumePlayerRequest) {
-    const validation = this.validationService.validate(body, resumePlayerSchema);
-    if (validation?.errors?.length) {
-      throw new BadRequest({
-        message: 'Validation failed',
-        code: 'EVALIDATIONFAIL',
-        metadata: validation.errors,
-      });
-    }
+    this.validationService.validate(body, resumePlayerSchema);
     return from(this.userService.findOne({ _id: userId }))
       .pipe(mergeMap((userDocument) => {
         const config: AxiosRequestConfig = {
@@ -181,13 +181,31 @@ class SpotifyService {
     }).pipe(map((response) => response.data));
   }
 
-  getPlaylists(userId: string) {
+  getTracksFromLibrary(userId: string, query: DefaultPaginationQuery) {
+    const params = this.validatePaginationQueries(query);
+    return from(this.userService.findOne({ _id: userId }))
+      .pipe(mergeMap((userDocument) => {
+        const config: AxiosRequestConfig = {
+          method: 'GET',
+          url: `${this.spotify.api.root}/${this.spotify.api.tracks}`,
+          headers: SpotifyService.getHeadersFromUser(userDocument),
+          params,
+        };
+        return this.httpService.request<{ items: [SpotifyTrack] }>(config).pipe(
+          map((response) => ({ results: response.data.items })),
+        );
+      })).pipe(catchError((err) => this.handleUnauthorized<AxiosError>(err, userId)));
+  }
+
+  getPlaylists(userId: string, query: DefaultPaginationQuery) {
+    const params = this.validatePaginationQueries(query);
     return from(this.userService.findOne({ _id: userId }))
       .pipe(mergeMap((userDocument) => {
         const config: AxiosRequestConfig = {
           method: 'GET',
           url: `${this.spotify.api.root}/${this.spotify.api.playlists}`,
           headers: SpotifyService.getHeadersFromUser(userDocument),
+          params,
         };
         return this.httpService.request<{ items: [PlaylistItem] }>(config).pipe(
           map((response) => ({ results: response.data.items })),
@@ -196,14 +214,7 @@ class SpotifyService {
   }
 
   createPlaylist(body: CreatePlaylistRequestBody, userId: string) {
-    const validation = this.validationService.validate(body, createPlaylistSchema);
-    if (validation?.errors?.length) {
-      throw new BadRequest({
-        message: 'Validation failed',
-        code: 'EVALIDATIONFAIL',
-        metadata: validation.errors,
-      });
-    }
+    this.validationService.validate(body, createPlaylistSchema);
     return from(this.userService.findOne({ _id: userId }))
       .pipe(mergeMap((userDocument) => {
         const config: AxiosRequestConfig = {
@@ -221,15 +232,24 @@ class SpotifyService {
       })).pipe(catchError((err) => this.handleUnauthorized<AxiosError>(err, userId)));
   }
 
+  addTrackToLibrary(body: AddTracksToLibraryBody, userId: string) {
+    this.validationService.validate(body, addTrackToLibrarySchema);
+    return from(this.userService.findOne({ _id: userId }))
+      .pipe(mergeMap((userDocument) => {
+        const config: AxiosRequestConfig = {
+          method: 'PUT',
+          url: `${this.spotify.api.root}/${this.spotify.api.tracks}`,
+          headers: SpotifyService.getHeadersFromUser(userDocument),
+          data: body.ids,
+        };
+        return this.httpService.request<PlaylistItem>(config).pipe(
+          map((response) => (response.data)),
+        );
+      })).pipe(catchError((err) => this.handleUnauthorized<AxiosError>(err, userId)));
+  }
+
   addTrackToPlaylist(body: AddTrackToPlaylistBody, playlistId: string, userId: string) {
-    const validation = this.validationService.validate(body, addTrackToPlaylistSchema);
-    if (validation?.errors?.length) {
-      throw new BadRequest({
-        message: 'Validation failed',
-        code: 'EVALIDATIONFAIL',
-        metadata: validation.errors,
-      });
-    }
+    this.validationService.validate(body, addTrackToPlaylistSchema);
     return from(this.userService.findOne({ _id: userId }))
       .pipe(mergeMap((userDocument) => {
         const config: AxiosRequestConfig = {
@@ -289,7 +309,18 @@ class SpotifyService {
       config.headers = SpotifyService.getHeadersFromUser(user);
       return this.httpService.request<RequestType>(config).pipe(map((response) => response.data));
     }));
-    return iif(() => err.response.status === 401, retryStrategy$, throwError(err));
+    return iif(() => err.response.status === 401, retryStrategy$,
+      throwError(new HttpException(err.response.data.error, err.response.status)));
+  }
+
+  private validatePaginationQueries(query: DefaultPaginationQuery) {
+    const params = { limit: null, offset: null };
+    if (query.limit || query.offset) {
+      params.limit = (query.limit) ? +query.limit : null;
+      params.offset = (query.offset) ? +query.offset : null;
+      this.validationService.validate(params, defaultPaginationSchema);
+    }
+    return params;
   }
 }
 

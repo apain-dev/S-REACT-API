@@ -34,7 +34,6 @@ export class SyncService {
   }
 
   addUser(payload: SyncPreConnect, socket: Socket) {
-    console.log(payload);
     this.logUser(payload, socket);
   }
 
@@ -54,7 +53,6 @@ export class SyncService {
     if (this.users.length === 0) {
       this.watcher$.unsubscribe();
       this.watcher$ = null;
-      console.info('Unsubscribe watcher');
     }
   }
 

@@ -8,6 +8,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
 } from '@nestjs/common';
 import {
   ApiCreatedResponse,
@@ -27,6 +28,7 @@ import {
   GetPlaylistsResponse,
   PlaylistItem,
 } from '../../models/spotify/playlists/getPlaylistsResponse';
+import { DefaultPaginationQuery } from '../../models/spotify/spotify.dto';
 import SpotifyService from './spotify.service';
 
 @Controller('spotify/:userId/playlists')
@@ -98,8 +100,8 @@ class PlaylistsController {
     description: 'An internal error occurred',
     type: InternalErrorResponse,
   })
-  getUserPlaylists(@Param('userId') userId: string) {
-    return this.spotifyService.getPlaylists(userId);
+  getUserPlaylists(@Param('userId') userId: string, @Query() query: DefaultPaginationQuery) {
+    return this.spotifyService.getPlaylists(userId, query);
   }
 }
 

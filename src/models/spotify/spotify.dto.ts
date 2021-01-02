@@ -1,4 +1,7 @@
-import { ApiProperty } from '@nestjs/swagger';
+import {
+  ApiProperty,
+  ApiPropertyOptional,
+} from '@nestjs/swagger';
 
 export interface CreateTokenResponse {
   access_token: string;
@@ -49,21 +52,53 @@ export class SpotifyUser {
   uri: string;
 }
 
-export interface SpotifyArtist {
-  id: string,
-  name: string,
-  type: string,
-  uri: string
+export class SpotifyArtist {
+  @ApiProperty()
+  id: string;
+
+  @ApiProperty()
+  name: string;
+
+  @ApiProperty()
+  type: string;
+
+  @ApiProperty()
+  uri: string;
 }
 
-export interface SpotifyTrack {
-  artists: SpotifyArtist[],
-  duration_ms: number,
+export class SpotifyTrack {
+  @ApiProperty({ type: [SpotifyArtist] })
+  artists: SpotifyArtist[];
+
+  @ApiProperty()
+  duration_ms: number;
+
+  @ApiProperty()
   id: string;
+
+  @ApiProperty()
   is_local: boolean;
+
+  @ApiProperty()
   is_playable: boolean;
+
+  @ApiProperty()
   name: string;
+
+  @ApiProperty()
   track_number: 1;
+
+  @ApiProperty()
   type: string;
+
+  @ApiProperty()
   uri: string;
+}
+
+export class DefaultPaginationQuery {
+  @ApiPropertyOptional({ description: 'Limit of results. Limit is 50', example: 'limit=35' })
+  limit: string | number;
+
+  @ApiPropertyOptional({ description: 'Offset of results', example: 'offset=35' })
+  offset: string | number;
 }

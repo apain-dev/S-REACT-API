@@ -4,6 +4,7 @@ import {
   Module,
 } from '@nestjs/common';
 import UsersModule from '../users/users.module';
+import LibraryController from './library.controller';
 import PlayerController from './player.controller';
 import PlaylistsController from './playlists.controller';
 import SpotifyController from './spotify.controller';
@@ -11,7 +12,7 @@ import SpotifyService from './spotify.service';
 
 @Module({
   imports: [HttpModule, UsersModule, JsonSchemaModule],
-  controllers: [SpotifyController, PlaylistsController, PlayerController],
+  controllers: [SpotifyController, PlaylistsController, PlayerController, LibraryController],
   providers: [SpotifyService],
   exports: [SpotifyService],
 })
