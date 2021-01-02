@@ -66,9 +66,41 @@ export class SpotifyArtist {
   uri: string;
 }
 
+export class SpotifyAlbum {
+  @ApiProperty()
+  album_type: string;
+
+  @ApiProperty({ type: [SpotifyArtist] })
+  artists: SpotifyArtist[];
+
+  @ApiProperty()
+  id: string;
+
+  @ApiProperty({ type: [SpotifyImage] })
+  images: SpotifyImage[];
+
+  @ApiProperty()
+  name: string;
+
+  @ApiProperty()
+  release_date: string;
+
+  @ApiProperty()
+  total_tracks: number;
+
+  @ApiProperty()
+  type: string;
+
+  @ApiProperty()
+  uri: string;
+}
+
 export class SpotifyTrack {
   @ApiProperty({ type: [SpotifyArtist] })
   artists: SpotifyArtist[];
+
+  @ApiProperty({ type: SpotifyAlbum })
+  album: SpotifyAlbum;
 
   @ApiProperty()
   duration_ms: number;
@@ -96,7 +128,11 @@ export class SpotifyTrack {
 }
 
 export class DefaultPaginationQuery {
-  @ApiPropertyOptional({ type: String, description: 'Limit of results. Limit is 50', example: 'limit=35' })
+  @ApiPropertyOptional({
+    type: String,
+    description: 'Limit of results. Limit is 50',
+    example: 'limit=35',
+  })
   limit: string | number;
 
   @ApiPropertyOptional({ type: String, description: 'Offset of results', example: 'offset=35' })

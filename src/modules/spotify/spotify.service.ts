@@ -213,6 +213,22 @@ class SpotifyService {
       })).pipe(catchError((err) => this.handleUnauthorized<AxiosError>(err, userId)));
   }
 
+  getPlaylistTracks(userId: string, playlistId: string, query: DefaultPaginationQuery) {
+    const params = this.validatePaginationQueries(query);
+    return from(this.userService.findOne({ _id: userId }))
+      .pipe(mergeMap((userDocument) => {
+        const config: AxiosRequestConfig = {
+          method: 'GET',
+          url: `${this.spotify.api.root}/playlists/${playlistId}/tracks`,
+          headers: SpotifyService.getHeadersFromUser(userDocument),
+          params,
+        };
+        return this.httpService.request<{ items: [SpotifyTrack] }>(config).pipe(
+          map((response) => ({ results: response.data.items })),
+        );
+      })).pipe(catchError((err) => this.handleUnauthorized<AxiosError>(err, userId)));
+  }
+
   createPlaylist(body: CreatePlaylistRequestBody, userId: string) {
     this.validationService.validate(body, createPlaylistSchema);
     return from(this.userService.findOne({ _id: userId }))

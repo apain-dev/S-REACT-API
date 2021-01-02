@@ -28,6 +28,7 @@ import {
   GetPlaylistsResponse,
   PlaylistItem,
 } from '../../models/spotify/playlists/getPlaylistsResponse';
+import GetPlaylistsTracksResponse from '../../models/spotify/playlists/getPlaylistsTracksRequest';
 import { DefaultPaginationQuery } from '../../models/spotify/spotify.dto';
 import SpotifyService from './spotify.service';
 
@@ -57,6 +58,28 @@ class PlaylistsController {
   })
   create(@Param('userId') userId: string, @Body() body: CreatePlaylistRequestBody) {
     return this.spotifyService.createPlaylist(body, userId);
+  }
+
+  @Get(':playlistId/tracks')
+  @ApiOkResponse({
+    type: GetPlaylistsTracksResponse,
+    description: 'Tracks of the playlist are returned',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Not allowed to access resources',
+    type: UnauthorizedErrorResponse,
+  })
+  @ApiForbiddenResponse({
+    description: 'Not allowed to access resources',
+    type: UnauthorizedErrorResponse,
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An internal error occurred',
+    type: InternalErrorResponse,
+  })
+  getPlaylistTracks(@Param('userId') userId: string, @Param('playlistId') playlistId: string,
+    @Query() query: DefaultPaginationQuery) {
+    return this.spotifyService.getPlaylistTracks(userId, playlistId, query);
   }
 
   @Post(':playlistId/tracks')
