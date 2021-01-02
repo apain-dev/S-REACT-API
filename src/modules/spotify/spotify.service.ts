@@ -29,17 +29,28 @@ import {
   PlayerResponse,
   PlayerStatus,
   ResumePlayerRequest,
+  SetPlayerRepeatStateBody,
+  SetPlayerShuffleStateBody,
 } from '../../models/spotify/player/player.dto';
-import resumePlayerSchema from '../../models/spotify/player/validation';
+import resumePlayerSchema, {
+  setPlayerRepeatStateSchema,
+  setPlayerShuffleStateSchema,
+} from '../../models/spotify/player/validation';
 import { AddTrackToPlaylistBody } from '../../models/spotify/playlists/addTrackToPlaylistRequest.dto';
 import { CreatePlaylistRequestBody } from '../../models/spotify/playlists/createPlaylistRequest.dto';
 import { PlaylistItem } from '../../models/spotify/playlists/getPlaylistsResponse';
-import createPlaylistSchema, { addTrackToPlaylistSchema } from '../../models/spotify/playlists/validation';
+import RemoveTracksFromPlaylistBody
+  from '../../models/spotify/playlists/removeTracksFromPlaylistRequest.dto';
+import createPlaylistSchema, {
+  addTrackToPlaylistSchema,
+  removeTrackFromPlaylistSchema,
+} from '../../models/spotify/playlists/validation';
 import SearchRequestQuery from '../../models/spotify/search/searchRequest.dto';
 import {
   CreateTokenResponse,
   DefaultPaginationQuery,
   GetAccountResponse,
+  SpotifyAlbum,
   SpotifyTrack,
 } from '../../models/spotify/spotify.dto';
 import defaultPaginationSchema from '../../models/spotify/validation';
@@ -59,6 +70,7 @@ class SpotifyService {
       search: 'search',
       player: 'me/player',
       tracks: 'me/tracks',
+      browse: 'browse',
     },
   };
 
@@ -75,6 +87,23 @@ class SpotifyService {
       });
     }
     return { Authorization: `Bearer ${user.spotify.accessToken}` };
+  }
+
+  browseNewReleases(userId: string) {
+    return from(this.userService.findOne({ _id: userId }))
+      .pipe(mergeMap((userDocument) => {
+        const config: AxiosRequestConfig = {
+          method: 'GET',
+          url: `${this.spotify.api.root}/${this.spotify.api.browse}/new-releases`,
+          headers: SpotifyService.getHeadersFromUser(userDocument),
+          params: {
+            country: 'fr',
+          },
+        };
+        return this.httpService.request<{ albums: { items: SpotifyAlbum[] } }>(config).pipe(
+          map((response) => ({ results: response.data.albums.items })),
+        );
+      })).pipe(catchError((err) => this.handleUnauthorized<AxiosError>(err, userId)));
   }
 
   getPlayer(userId: string) {
@@ -282,6 +311,74 @@ class SpotifyService {
       })).pipe(catchError((err) => this.handleUnauthorized<AxiosError>(err, userId)));
   }
 
+  setPlayerRepeatState(userId: string, body: SetPlayerRepeatStateBody) {
+    this.validationService.validate(body, setPlayerRepeatStateSchema);
+    return from(this.userService.findOne({ _id: userId }))
+      .pipe(mergeMap((userDocument) => {
+        const config: AxiosRequestConfig = {
+          method: 'PUT',
+          url: `${this.spotify.api.root}/${this.spotify.api.player}/repeat`,
+          headers: SpotifyService.getHeadersFromUser(userDocument),
+          params: {
+            state: body.state,
+          },
+        };
+        return this.httpService.request<string>(config).pipe(
+          map((response) => (response.data)),
+        );
+      })).pipe(catchError((err) => this.handleUnauthorized<AxiosError>(err, userId)));
+  }
+
+  setPlayerShuffleState(userId: string, body: SetPlayerShuffleStateBody) {
+    this.validationService.validate(body, setPlayerShuffleStateSchema);
+    return from(this.userService.findOne({ _id: userId }))
+      .pipe(mergeMap((userDocument) => {
+        const config: AxiosRequestConfig = {
+          method: 'PUT',
+          url: `${this.spotify.api.root}/${this.spotify.api.player}/shuffle`,
+          headers: SpotifyService.getHeadersFromUser(userDocument),
+          params: {
+            state: body.state,
+          },
+        };
+        return this.httpService.request<string>(config).pipe(
+          map((response) => (response.data)),
+        );
+      })).pipe(catchError((err) => this.handleUnauthorized<AxiosError>(err, userId)));
+  }
+
+  playerMoveSong(userId: string, move: 'next' | 'previous') {
+    return from(this.userService.findOne({ _id: userId }))
+      .pipe(mergeMap((userDocument) => {
+        const config: AxiosRequestConfig = {
+          method: 'POST',
+          url: `${this.spotify.api.root}/${this.spotify.api.player}/${move}`,
+          headers: SpotifyService.getHeadersFromUser(userDocument),
+        };
+        return this.httpService.request<string>(config).pipe(
+          map((response) => (response.data)),
+        );
+      })).pipe(catchError((err) => this.handleUnauthorized<AxiosError>(err, userId)));
+  }
+
+  removePlaylistTracks(userId: string, playlistId: string, body: RemoveTracksFromPlaylistBody) {
+    this.validationService.validate(body, removeTrackFromPlaylistSchema);
+    return from(this.userService.findOne({ _id: userId }))
+      .pipe(mergeMap((userDocument) => {
+        const config: AxiosRequestConfig = {
+          method: 'DELETE',
+          url: `${this.spotify.api.root}/playlists/${playlistId}/tracks`,
+          headers: SpotifyService.getHeadersFromUser(userDocument),
+          data: {
+            tracks: body.tracks,
+          },
+        };
+        return this.httpService.request<string>(config).pipe(
+          map((response) => (response.data)),
+        );
+      })).pipe(catchError((err) => this.handleUnauthorized<AxiosError>(err, userId)));
+  }
+
   private createToken(code: string = null, refreshToken: string = null)
     : Observable<CreateTokenResponse> {
     const method = (code) ? { grant_type: 'authorization_code', code } : {
@@ -326,7 +423,8 @@ class SpotifyService {
       return this.httpService.request<RequestType>(config).pipe(map((response) => response.data));
     }));
     return iif(() => err.response.status === 401, retryStrategy$,
-      throwError(new HttpException(err.response.data.error, err.response.status)));
+      (err instanceof HttpException) ? throwError(err)
+        : throwError(new HttpException(err.response.data.error, err.response.status)));
   }
 
   private validatePaginationQueries(query: DefaultPaginationQuery) {

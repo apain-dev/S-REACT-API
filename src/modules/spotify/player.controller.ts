@@ -21,6 +21,8 @@ import {
 import {
   PlayerResponse,
   ResumePlayerRequest,
+  SetPlayerRepeatStateBody,
+  SetPlayerShuffleStateBody,
 } from '../../models/spotify/player/player.dto';
 import SpotifyService from './spotify.service';
 
@@ -62,6 +64,70 @@ class PlayerController {
   })
   pause(@Param('userId') userId: string) {
     return this.spotifyService.pausePlayer(userId);
+  }
+
+  @Put('repeat')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Set state of repeat for player' })
+  @ApiNoContentResponse({ description: 'Repeat state set' })
+  @ApiUnauthorizedResponse({
+    description: 'Not allowed to access resources',
+    type: UnauthorizedErrorResponse,
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An internal error occurred',
+    type: InternalErrorResponse,
+  })
+  setRepeatState(@Param('userId') userId: string, @Body() body: SetPlayerRepeatStateBody) {
+    return this.spotifyService.setPlayerRepeatState(userId, body);
+  }
+
+  @Put('next')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Go to next song' })
+  @ApiNoContentResponse({ description: 'Next song selected' })
+  @ApiUnauthorizedResponse({
+    description: 'Not allowed to access resources',
+    type: UnauthorizedErrorResponse,
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An internal error occurred',
+    type: InternalErrorResponse,
+  })
+  nextSong(@Param('userId') userId: string) {
+    return this.spotifyService.playerMoveSong(userId, 'next');
+  }
+
+  @Put('previous')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Go to previous song' })
+  @ApiNoContentResponse({ description: 'Previous song selected' })
+  @ApiUnauthorizedResponse({
+    description: 'Not allowed to access resources',
+    type: UnauthorizedErrorResponse,
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An internal error occurred',
+    type: InternalErrorResponse,
+  })
+  previousSong(@Param('userId') userId: string) {
+    return this.spotifyService.playerMoveSong(userId, 'previous');
+  }
+
+  @Put('shuffle')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Set state of shuffle for player' })
+  @ApiNoContentResponse({ description: 'Shuffle state set' })
+  @ApiUnauthorizedResponse({
+    description: 'Not allowed to access resources',
+    type: UnauthorizedErrorResponse,
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An internal error occurred',
+    type: InternalErrorResponse,
+  })
+  setShuffleState(@Param('userId') userId: string, @Body() body: SetPlayerShuffleStateBody) {
+    return this.spotifyService.setPlayerShuffleState(userId, body);
   }
 
   @Put('play')

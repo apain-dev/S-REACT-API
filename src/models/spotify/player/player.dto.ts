@@ -42,3 +42,13 @@ export interface PlayerStatus {
   is_playing: boolean;
   item: SpotifyTrack;
 }
+
+export class SetPlayerRepeatStateBody {
+  @ApiProperty({ type: String, enum: ['track', 'off', 'context'], description: 'State of the player repeat.' })
+  state: 'track' | 'off' | 'context';
+}
+
+export class SetPlayerShuffleStateBody {
+  @ApiProperty({ type: Boolean, description: 'State of the player shuffle.' })
+  state: boolean;
+}

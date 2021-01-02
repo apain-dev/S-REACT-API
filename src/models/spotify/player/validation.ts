@@ -10,4 +10,22 @@ const resumePlayerSchema: Schema = {
   required: [],
 };
 
+export const setPlayerRepeatStateSchema: Schema = {
+  id: '/setPlayerRepeatState',
+  type: 'object',
+  properties: {
+    state: { type: 'string', enum: ['track', 'off', 'context'] },
+  },
+  required: ['state'],
+};
+
+export const setPlayerShuffleStateSchema: Schema = {
+  id: '/setPlayerShuffleState',
+  type: 'object',
+  properties: {
+    state: { type: 'boolean' },
+  },
+  required: ['state'],
+};
+
 export default resumePlayerSchema;

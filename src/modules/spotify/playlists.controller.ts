@@ -5,6 +5,7 @@ import {
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -29,6 +30,8 @@ import {
   PlaylistItem,
 } from '../../models/spotify/playlists/getPlaylistsResponse';
 import GetPlaylistsTracksResponse from '../../models/spotify/playlists/getPlaylistsTracksRequest';
+import RemoveTracksFromPlaylistBody
+  from '../../models/spotify/playlists/removeTracksFromPlaylistRequest.dto';
 import { DefaultPaginationQuery } from '../../models/spotify/spotify.dto';
 import SpotifyService from './spotify.service';
 
@@ -58,6 +61,29 @@ class PlaylistsController {
   })
   create(@Param('userId') userId: string, @Body() body: CreatePlaylistRequestBody) {
     return this.spotifyService.createPlaylist(body, userId);
+  }
+
+  @Delete(':playlistId')
+  @ApiOperation({ summary: 'Remove tracks from playlist' })
+  @ApiOkResponse({
+    description: 'Tracks removed',
+    type: AddTrackToPlaylistResponse,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Not allowed to access resources',
+    type: UnauthorizedErrorResponse,
+  })
+  @ApiForbiddenResponse({
+    description: 'Not allowed to access resources',
+    type: UnauthorizedErrorResponse,
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An internal error occurred',
+    type: InternalErrorResponse,
+  })
+  unfollowPlaylist(@Param('userId') userId: string,
+    @Param('playlistId') playlistId: string, @Body() body: RemoveTracksFromPlaylistBody) {
+    return this.spotifyService.removePlaylistTracks(userId, playlistId, body);
   }
 
   @Get(':playlistId/tracks')
