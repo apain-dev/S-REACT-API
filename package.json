@@ -9,6 +9,7 @@
     "prebuild": "rimraf dist",
     "build": "nest build",
     "build:prod": "npm run build",
+    "build:docker": "npm run build && mv .enoviah/service/@enoviah/s-js-api/* .",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -168,7 +169,7 @@
               "name": "package.json"
             },
             {
-              "path": "Dockerfile",
+              "path": "deployment/Dockerfile",
               "name": "Dockerfile"
             },
             {
@@ -176,8 +177,8 @@
               "name": "node_modules"
             },
             {
-              "path": "docker",
-              "name": "docker"
+              "path": "deployment",
+              "name": "deployment"
             }
           ],
           "test": false

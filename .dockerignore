@@ -1,0 +1,6 @@
+.enoviah/
+node_modules
+test/
+.env
+.env.example
+
