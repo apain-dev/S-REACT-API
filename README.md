@@ -2,6 +2,8 @@
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo_text.svg" width="320" alt="Nest Logo" /></a>
 </p>
 
+[![Build Status](https://dev.azure.com/enoviah/Enoviah/_apis/build/status/S-mhealth?branchName=master)](https://dev.azure.com/enoviah/Enoviah/_build/latest?definitionId=61&branchName=master)
+
 ## Description
 
 Javascript api for epitech REACT module.

@@ -241,8 +241,8 @@ export class SyncService {
         },
       });
     }
-    /** if (this.users.length === 1 && !this.watcher$) {
+    if (this.users.length === 1 && !this.watcher$) {
       this.registerWatcher();
-    }* */
+    }
   }
 }
