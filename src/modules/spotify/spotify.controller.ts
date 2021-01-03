@@ -31,14 +31,14 @@ class SpotifyController {
 
   @Get('callback')
   @ApiExcludeEndpoint()
-  async getCode(@Query() query: { code: string, state: string }, @Res() res: Response) {
-    try {
-      await this.spotifyService.applyCodeToUser(query.code, query.state);
+  getCode(@Query() query: { code: string, state: string }, @Res() res: Response) {
+    this.spotifyService.applyCodeToUser(query.code, query.state).subscribe(() => {
       res.status(403).redirect(`${environment.environment.APP_URL}/home?status=success`);
-    } catch (e) {
+    }, () => {
       res.status(403).redirect(`${environment.environment.APP_URL}/home?status=error`);
-    }
+    });
   }
+
 
   @Get(':userId/search')
   @ApiUnauthorizedResponse({
