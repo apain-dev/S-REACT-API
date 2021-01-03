@@ -34,9 +34,9 @@ class SpotifyController {
   async getCode(@Query() query: { code: string, state: string }, @Res() res: Response) {
     try {
       await this.spotifyService.applyCodeToUser(query.code, query.state);
-      res.status(403).redirect(`${environment.environment.APP_URL}/callback?status=success`);
+      res.status(403).redirect(`${environment.environment.APP_URL}/home?status=success`);
     } catch (e) {
-      res.status(403).redirect(`${environment.environment.APP_URL}/callback?status=error`);
+      res.status(403).redirect(`${environment.environment.APP_URL}/home?status=error`);
     }
   }
 
