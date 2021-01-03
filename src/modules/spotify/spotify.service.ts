@@ -46,6 +46,7 @@ import createPlaylistSchema, {
   removeTrackFromPlaylistSchema,
 } from '../../models/spotify/playlists/validation';
 import SearchRequestQuery from '../../models/spotify/search/searchRequest.dto';
+import searchSchema from '../../models/spotify/search/validation';
 import {
   CreateTokenResponse,
   DefaultPaginationQuery,
@@ -168,6 +169,7 @@ class SpotifyService {
   }
 
   search(query: SearchRequestQuery, userId: string) {
+    this.validationService.validate(query, searchSchema);
     return from(this.userService.findOne({ _id: userId }))
       .pipe(mergeMap((userDocument) => {
         const config: AxiosRequestConfig = {

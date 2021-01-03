@@ -48,14 +48,7 @@ class UsersService {
   }
 
   create(body: CreateUserRequest): Observable<UserDocument> {
-    const validation = this.jsonSchemaService.validate(body, creatUserSchema, true);
-    if (validation.errors?.length) {
-      throw new BadRequest({
-        message: 'Validation failed',
-        code: 'EVALIDATIONFAIL',
-        metadata: validation.errors,
-      });
-    }
+    this.jsonSchemaService.validate(body, creatUserSchema, true);
     if (body.confirmPassword !== body.password) {
       throw new BadRequest({ message: 'Passwords missmatch', code: 'EPASSWORDMISSMATCH' });
     }
