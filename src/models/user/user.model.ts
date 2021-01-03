@@ -19,6 +19,12 @@ class User {
     accessToken: string;
     refreshToken: string;
   };
+
+  @ApiProperty()
+  createdAt?: string;
+
+  @ApiProperty()
+  updatedAt?: string;
 }
 
 export default User;

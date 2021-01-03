@@ -30,6 +30,7 @@ services:
       SPOTIFY_CLIENT_SECRET: YOUR_SPOTIFY_SECRET
       SPOTIFY_CLIENT_ID: YOUR_SPOTIFY_PUBLIC
       SPOTIFY_REDIRECT_URI: http://localhost:8080/spotify/callback
+      APP_URL: URLOFAPP
     links:
       - mongodb
     depends_on:

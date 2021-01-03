@@ -44,7 +44,6 @@ class UsersService {
     if (!user) {
       throw new BadRequestException({ message: 'Cannot find user', code: 'EUSERNOTFOUND' });
     }
-    user.spotify = !!(user.spotify && user.spotify.accessToken);
     return user;
   }
 
