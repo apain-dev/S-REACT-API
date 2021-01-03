@@ -150,17 +150,38 @@ socket.on('connect', function() {
 socket.emit('preconnect', { userId: 'xxxxxx' }, (error: { code: string; error: string; }) => {
   // On success error is empty. On error, error is equal to {code: string, error: string}
 });
-// After preconnect you can watch this event
-socket.on('player-state', function(playerState: PlayerState) {
-});
+
 
 socket.on('disconnect', function() {
 });
 
+```
+
+**WARNING** next steps need to be called after _preconnect_ event.
+
+### Listen to player state
+
+You can watch any changer from your spotify player by subscribing to _player-state_ event.
+
+```typescript
 interface PlayerState {
   isActive: boolean;
   isPlaying: boolean;
   playing: 'track' | 'playlist';
   item: SpotifyTrack;
 }
+
+socket.on('player-state', (playerState: PlayerState) => {
+});
+```
+
+### Chat with other users
+
+You can start a conversation with other users. Each conversation will be handled by a room.
+
+```typescript
+// ids is an array of string representing other users to add in the conversation
+socket.emit('new-room', { ids: ['xxxxxx'] }, (response: { messages: string, id: number }) => {
+  // On success each user of the room will receive the new-room event
+});
 ```
