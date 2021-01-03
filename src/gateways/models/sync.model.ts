@@ -5,7 +5,6 @@ export interface ChatStatus {
 
 export interface SyncPreConnect {
   userId: string;
-  shopId: string;
 }
 
 export interface ChatTyping {

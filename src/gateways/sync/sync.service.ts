@@ -1,19 +1,25 @@
 import { Injectable } from '@nestjs/common';
+import { WsException } from '@nestjs/websockets';
 import {
   Subscription,
   timer,
 } from 'rxjs';
 import { take } from 'rxjs/operators';
-import { Socket } from 'socket.io';
+import {
+  Server,
+  Socket,
+} from 'socket.io';
 import { PlayerStatus } from '../../models/spotify/player/player.dto';
 import { SpotifyTrack } from '../../models/spotify/spotify.dto';
 import SpotifyService from '../../modules/spotify/spotify.service';
+import UsersService from '../../modules/users/users.service';
+import Utils from '../../utils/utils';
 import { SyncPreConnect } from '../models/sync.model';
 
 export interface User {
   userId: string;
-  shopId: string;
   sockets: Socket[];
+  rooms: number[];
   spotify: {
     player: {
       isActive: boolean;
@@ -24,36 +30,89 @@ export interface User {
   }
 }
 
+interface Room {
+  users: User[];
+  messages: { userId: string, text: string }[];
+  id: number;
+  name: string;
+}
+
 @Injectable()
 export class SyncService {
   private users: User[] = [];
 
+  private rooms: Room[] = [];
+
   private watcher$: Subscription;
 
-  constructor(private readonly spotifyService: SpotifyService) {
+  constructor(private readonly spotifyService: SpotifyService,
+    private readonly usersService: UsersService) {
   }
 
-  addUser(payload: SyncPreConnect, socket: Socket) {
+  static joinRoom(users: User[], room: Room) {
+    users.forEach((user) => user.sockets.forEach((socket) => {
+      socket.join(room.name);
+      user.rooms.push(room.id);
+    }));
+  }
+
+  createRoom(users: string[], socket: Socket): Room {
+    const currentUser = this.findUserBySocket(socket.id);
+    const currentId = this.rooms.reduce(
+      (prevValue: number, value) => ((value.id > prevValue) ? value.id : prevValue), 0,
+    );
+    const room: Room = {
+      users: [],
+      id: currentId + 1,
+      name: `room-${currentUser.userId}-${currentId + 1}`,
+      messages: [],
+    };
+    const validatedUsers = [currentUser];
+    users.forEach((user) => {
+      const connectedUser = this.users.find((connectUser) => connectUser.userId === user);
+      if (connectedUser) {
+        validatedUsers.push(connectedUser);
+      }
+    });
+    SyncService.joinRoom(validatedUsers, room);
+    room.users = validatedUsers;
+    this.rooms.push(room);
+    return room;
+  }
+
+  async addUser(payload: SyncPreConnect, socket: Socket) {
+    let user;
+    try {
+      user = await this.usersService.findOne({ _id: payload.userId });
+    } catch (e) {
+      return { error: 'cannot find user', code: 'SUSERNOTFOUND' };
+    }
+    if (!user.spotify || !user.spotify.accessToken) {
+      return { error: 'User not connected to spotify', code: 'SSPOTIFYNOTCONNECTED' };
+    }
     this.logUser(payload, socket);
+    return null;
   }
 
-  public logOut(socketId: string) {
+  public logOut(socketId: string): User {
     const user = this.findUserBySocket(socketId);
+    let deletedUser = null;
     if (!user) {
-      return;
+      return null;
     }
     if (user && user.sockets.length > 1) {
       const index = user.sockets.findIndex((socket) => socket.id === socketId);
       user.sockets.splice(index, 1);
     } else {
       const userIndex = this.users.findIndex((item: User) => item.userId === user.userId);
-      this.users.splice(userIndex, 1);
+      [deletedUser] = this.users.splice(userIndex, 1);
     }
 
     if (this.users.length === 0) {
       this.watcher$.unsubscribe();
       this.watcher$ = null;
     }
+    return deletedUser;
   }
 
   public findUserById(userId: string): User {
@@ -111,6 +170,61 @@ export class SyncService {
       });
   }
 
+  leaveRoom(roomId: number, socket: Socket, server: Server) {
+    const user = this.findUserBySocket(socket.id);
+
+    const foundRoom = Utils.find<Room>(this.rooms, (room) => room.id === roomId);
+    if (foundRoom.index === -1) {
+      throw new WsException('Cannot find room');
+    }
+    const { index } = Utils.find<User>(foundRoom.value.users, (u) => u.userId === user.userId);
+    if (index === -1) {
+      throw new WsException(`Cannot find user in room ${foundRoom.value.id}`);
+    }
+    if (foundRoom.value.users.length > 2) {
+      foundRoom.value.users.splice(index, 1);
+      server.to(foundRoom.value.name).emit('room-user-left', { userId: user.userId });
+    } else {
+      this.rooms.splice(foundRoom.index, 1);
+      server.to(foundRoom.value.name).emit('room-delete', { id: foundRoom.value.id });
+    }
+  }
+
+  addMessageToRoom(payload: { roomId: number; message: string }, socket: Socket) {
+    const room = this.rooms.find((roomItem) => roomItem.id === payload.roomId);
+    if (!room) {
+      throw new WsException(`Cannot find room ${room.id}`);
+    }
+    const user = this.findUserBySocket(socket.id);
+    if (!user) {
+      throw new WsException(`Cannot find user with socketId ${socket.id}`);
+    }
+    room.messages.push({ userId: user.userId, text: payload.message });
+    return room;
+  }
+
+  unlinkUserFromRooms(deletedUser: User, server: Server) {
+    deletedUser.rooms.forEach((roomId: number) => {
+      const room = this.rooms.findIndex((item) => item.id === roomId);
+      if (room === -1) {
+        return;
+      }
+      if (this.rooms[room].users.length > 2) {
+        const userIndex = this.rooms[room].users.findIndex(
+          (user) => user.userId === deletedUser.userId,
+        );
+        if (userIndex === -1) {
+          return;
+        }
+        this.rooms[room].users.splice(userIndex, 1);
+        server.to(this.rooms[room].name).emit('room-user-left', { userId: deletedUser.userId });
+      } else {
+        server.to(this.rooms[room].name).emit('room-delete', { id: this.rooms[room].id });
+        this.rooms.splice(room, 1);
+      }
+    });
+  }
+
   private logUser(payload: SyncPreConnect, socket: Socket) {
     const user = this.findUserById(payload.userId);
     if (user) {
@@ -119,6 +233,7 @@ export class SyncService {
       this.users.push({
         ...payload,
         sockets: [socket],
+        rooms: [],
         spotify: {
           player: {
             isPlaying: false, playing: null, item: null, isActive: false,
@@ -126,8 +241,8 @@ export class SyncService {
         },
       });
     }
-    if (this.users.length === 1 && !this.watcher$) {
+    /** if (this.users.length === 1 && !this.watcher$) {
       this.registerWatcher();
-    }
+    }* */
   }
 }

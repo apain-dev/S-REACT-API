@@ -23,16 +23,34 @@ class SyncGateway implements OnGatewayDisconnect {
 
   @SubscribeMessage('preconnect')
   handlePreConnect(@MessageBody() payload: SyncPreConnect, @ConnectedSocket() socket: Socket) {
-    this.syncService.addUser(payload, socket);
+    return this.syncService.addUser(payload, socket);
   }
 
-  @SubscribeMessage('new-conversation')
-  handleNewConversation(@MessageBody() payload: { candidate: string }) {
-    this.server.emit('new-conversation-created', payload);
+  @SubscribeMessage('new-room')
+  handleNewConversation(@MessageBody() payload: { ids: string[] },
+    @ConnectedSocket() socket: Socket) {
+    const room = this.syncService.createRoom(payload.ids, socket);
+    this.server.to(room.name).emit('new-room', { messages: room.messages, id: room.id });
+  }
+
+  @SubscribeMessage('new-message')
+  handleNewMessage(@MessageBody() payload: { roomId: number, message: string },
+    @ConnectedSocket() socket: Socket) {
+    const room = this.syncService.addMessageToRoom(payload, socket);
+    this.server.to(room.name).emit('new-message', { messages: room.messages, id: room.id });
+  }
+
+  @SubscribeMessage('leave-room')
+  handleLeaveRoom(@MessageBody() payload: { roomId: number },
+    @ConnectedSocket() socket: Socket) {
+    this.syncService.leaveRoom(payload.roomId, socket, this.server);
   }
 
   handleDisconnect(@ConnectedSocket() socket: Socket): void {
-    this.syncService.logOut(socket.id);
+    const deletedUser = this.syncService.logOut(socket.id);
+    if (deletedUser) {
+      this.syncService.unlinkUserFromRooms(deletedUser, this.server);
+    }
   }
 }
 

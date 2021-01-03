@@ -126,3 +126,39 @@ $ npm run lint
 ```
 
 to run it.
+
+## Sockets
+
+This api allow you to connect via socket to get real time update.
+
+### Init your library
+
+for this example, we will use socket.io format. But you can take any websocket client.
+
+```typescript
+var socket = import('socket.io-client')('http://localhost:8081/sync');
+
+// Default event when connection is ready
+
+socket.on('connect', function() {
+});
+
+// Custom event to tell the api that the client is ready to start communication
+// Remember user should be connect to auth-staging.outworld.fr & spotify.com
+socket.emit('preconnect', { userId: 'xxxxxx' }, (error: { code: string; error: string; }) => {
+  // On success error is empty. On error, error is equal to {code: string, error: string}
+});
+// After preconnect you can watch this event
+socket.on('player-state', function(playerState: PlayerState) {
+});
+
+socket.on('disconnect', function() {
+});
+
+interface PlayerState {
+  isActive: boolean;
+  isPlaying: boolean;
+  playing: 'track' | 'playlist';
+  item: SpotifyTrack;
+}
+```

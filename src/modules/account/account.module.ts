@@ -1,8 +1,13 @@
-import { Module } from '@nestjs/common';
+import {
+  HttpModule,
+  Module,
+} from '@nestjs/common';
+import UsersModule from '../users/users.module';
+import AccountController from './account.controller';
 
 @Module({
-  imports: [],
-  controllers: [],
+  imports: [UsersModule, HttpModule],
+  controllers: [AccountController],
   providers: [],
 })
 class AccountModule {

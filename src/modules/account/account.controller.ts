@@ -9,7 +9,12 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiHeader,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { GetAccountResponse } from '../../models/user/user.dto';
 import UsersService from '../users/users.service';
 
 @Controller('account')
@@ -20,6 +25,8 @@ class AccountController {
 
   @Get()
   @UseGuards(BearerGuard)
+  @ApiHeader({ name: 'Authorization', description: 'Access token from auth.outworld.fr' })
+  @ApiOkResponse({ description: 'User found', type: GetAccountResponse })
   getAccount(@Req() req: AuthenticatedRequest<TokenInfoResponse>) {
     return this.usersService.findOne({ authId: req.user.userId });
   }
