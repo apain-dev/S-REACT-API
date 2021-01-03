@@ -39,7 +39,6 @@ class SpotifyController {
     });
   }
 
-
   @Get(':userId/search')
   @ApiUnauthorizedResponse({
     description: 'Not allowed to access resources',
