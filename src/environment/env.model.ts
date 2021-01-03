@@ -7,4 +7,5 @@ export interface Environment {
   SPOTIFY_CLIENT_SECRET: string;
   SPOTIFY_CLIENT_ID: string;
   SPOTIFY_REDIRECT_URI: string;
+  APP_URL: string;
 }

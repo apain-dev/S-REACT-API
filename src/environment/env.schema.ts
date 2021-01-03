@@ -14,6 +14,6 @@ const envSchema: Schema = {
     SPOTIFY_CLIENT_SECRET: { type: 'string' },
     SPOTIFY_REDIRECT_URI: { type: 'string' },
   },
-  required: ['PORT', 'MONGO_DATABASE', 'CLIENT_SECRET', 'CLIENT_ID', 'SPOTIFY_CLIENT_SECRET', 'SPOTIFY_CLIENT_ID', 'SPOTIFY_REDIRECT_URI'],
+  required: ['APP_URL', 'PORT', 'MONGO_DATABASE', 'CLIENT_SECRET', 'CLIENT_ID', 'SPOTIFY_CLIENT_SECRET', 'SPOTIFY_CLIENT_ID', 'SPOTIFY_REDIRECT_URI'],
 };
 export default envSchema;
